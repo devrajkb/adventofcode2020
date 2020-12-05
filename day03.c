@@ -335,140 +335,26 @@ char test[11][11] ={"..##.......",
 "#...##....#",
 ".#..#...#.#"};
 
-int num_trees(void* arg, int numRows,int numCols)
-{
-	int trees = 0;
-	int right = 0;
-	char* sample = (char*)arg;
-	for(size_t i=1; i<numRows; i++) {
-		right += 3;
-		if(*(sample + i*numCols + right % (numCols -1))== '#') {trees++;}
-	}
-	
-}
 
-int num_trees_test(void)
+int n_trees(char *data, int rows, int column, int right_move, int down_move)
 {
 	int trees = 0;
 	int right = 0;
-	for(size_t i=1; i<323; i++) {
-		right += 3;
-		if(sample[i][right & 31] == '#') {trees++;}
+	for(size_t i=down_move; i<rows; i= i + down_move) {
+		right += right_move;
+		//char *temp_row_ptr = (sample + i*rows) ;
+		//char *temp_column_ptr =
+		char temp = *((data + i*column) + right % column);
+		if( temp == '#') {trees++;}
 	}
+	printf ("trees %u, right = %u down = %u\n", trees, right_move,down_move);
+	return trees;
 }
 int main(void)
 {
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<11; i++) {
-			right += 1;
-			if(test[i][right % 11] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<11; i++) {
-			right += 3;
-			if(test[i][right % 11] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<11; i++) {
-			right += 5;
-			if(test[i][right % 11] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<11; i++) {
-			right += 7;
-			if(test[i][right % 11] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=2; i<11; i = i+2) {
-			right += 1;
-			if(test[i][right % 11] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-	}
-	
 
-
-
-  int trees_each_option[5] = {0};
-
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<323; i++) {
-			right += 1;
-			if(sample[i][right % 31] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-		trees_each_option[0] = trees;
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<323; i++) {
-			right += 3;
-			if(sample[i][right % 31] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-		trees_each_option[1] = trees;
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<323; i++) {
-			right += 5;
-			if(sample[i][right % 31] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-		trees_each_option[2] = trees;
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=1; i<323; i++) {
-			right += 7;
-			if(sample[i][right % 31] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-		trees_each_option[3] = trees;
-	}
-	{
-		int trees = 0;
-		int right = 0;
-		for(size_t i=2; i<323; i= i+2) {
-			right += 1;
-			if(sample[i][right % 31] == '#') {trees++;}
-		}
-		
-		printf("%u\n", trees);
-		trees_each_option[4] = trees;
-	}
-	printf("product %u\n", trees_each_option[0]*trees_each_option[1]*trees_each_option[2]*trees_each_option[3]*trees_each_option[4]);
+printf("product %u\n", n_trees((char*)test, 11,11,1,1)*n_trees((char*)test, 11,11,3,1)*n_trees((char*)test, 11,11,5,1)*n_trees((char*)test, 11,11,7,1)*n_trees((char*)test, 11,11,1,2));
+printf("product %u\n", n_trees((char*)sample, 323,31,1,1)*n_trees((char*)sample, 323,31,3,1)*n_trees((char*)sample, 323,31,5,1)*n_trees((char*)sample, 323,31,7,1)*n_trees((char*)sample, 323,31,1,2));
+	//3093068400
 return 0;
 }
