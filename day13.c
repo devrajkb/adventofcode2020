@@ -112,18 +112,20 @@ uint64_t positon_waiting_timestamp_lcm(char* data, int num_elements)
     bus_id_pos_t* bus_id_pos_holder = calloc(num_elements, sizeof(*bus_id_pos_holder));
 
 	int first_bus_id = atoi(data);
+	int num_bus_ids = 1;
 	data = data + COL;
 	bus_id_pos_holder[0].bus_id = first_bus_id;
 	bus_id_pos_holder[0].pos = 0;
-	
+
 	bus_id_pos_t max_bus_id_pos = {first_bus_id, 0};
 	// timestamp is mulliple of first_bus_id
 	for (int i = 1 ; i <  num_elements; i++) 
 	{
 	    char* str = data;
 		if (strcmp(str, "x") != 0) {
-			 bus_id_pos_holder[i].bus_id = atoi(str);
-	         bus_id_pos_holder[i].pos = i;
+			 bus_id_pos_holder[num_bus_ids].bus_id = atoi(str);
+	         bus_id_pos_holder[num_bus_ids].pos = i;
+			 num_bus_ids++;
 		}
 		data = data + COL;
 	}
@@ -134,18 +136,36 @@ uint64_t positon_waiting_timestamp_lcm(char* data, int num_elements)
 		timestamp *= 10000;
 		timestamp *= 10000;
 		timestamp *= first_bus_id*2;
-		printf("Crazy large mul %lu timestamp %lu first_bus_id %u  %lu\n", mul, timestamp, first_bus_id, (uint64_t)(first_bus_id*10000*10000*10000));
+		printf("Crazy large mul %lu timestamp %lu first_bus_id %u  %lu num_bus_ids %u \n", mul, timestamp, first_bus_id, (uint64_t)(first_bus_id*10000*10000*10000), num_bus_ids);
 	}
+	size_t i =0;
     do {
 		timestamp += first_bus_id;
-		if (check_timestamp_pos(bus_id_pos_holder, num_elements, timestamp) == 1) {
+
+		{   
+			for (i =1; i <  num_bus_ids; i++)
+			{
+				//int value  = bus_id_pos_holder[i].bus_id;
+				//int waiting = bus_id_pos_holder[i].pos;
+				if ((bus_id_pos_holder[i].bus_id != 0) && 
+					 (((timestamp + bus_id_pos_holder[i].pos) % bus_id_pos_holder[i].bus_id) != 0) ) {
+					break;
+				}
+			}
+       }
+	   	if (num_bus_ids == i) {
+				break;
+		}
+/*
+		if (check_timestamp_pos(bus_id_pos_holder, num_bus_ids, timestamp) == 1) {
 			break;
 		}
-		if ( !(mul % 10000000)) {
+*/
+		if ( !(mul % 100000000)) {
 			printf("Crazy large mul %lu timestamp %lu\n", mul, timestamp);
-			}
+		}
 		mul++;
-	}while(first_bus_id != 0);
+	}while(1);
 		
 	//printf ("least_wait %u bus_id %u \n", least_wait, bus_id);
 	printf ("mul %lu \n", mul);
