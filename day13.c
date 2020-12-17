@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <pthread.h>
 
 
 /*
@@ -63,9 +64,12 @@ int timestamp_samplet = 1004345;
 char sample[92][COL] = {"41","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","37","x","x","x","x","x","379","x","x","x","x","x","x","x","23","x","x","x","x","13","x","x","x","17","x","x","x","x","x","x","x","x","x","x","x","29","x","557","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","19",};
 
 char test_1[4][COL] = {"67","7","59","61"};
-char test_2[5][COL] = {"67","x'","7","59","61"};
+char test_2[5][COL] = {"67","x","7","59","61"};
 char test_3[5][COL] = {"67","7","x", "59","61"};
 char test_4[4][COL] = {"1789","37","47", "1889"};
+
+#define NTHREADS 8
+
 	typedef struct bus_id_pos {
 		int bus_id;
 		int pos;
@@ -107,6 +111,55 @@ int check_timestamp_pos(bus_id_pos_t* bus_id_pos_holder, int num_elements, long 
 	}
 	return 1;
 }
+
+typedef struct thread_args_s {
+	int num_bus_ids;
+	int factor;
+	bus_id_pos_t * bus_id_pos_holder;
+	bus_id_pos_t *max_bus_id_pos;
+	uint64_t timestamp;
+}thread_args_t;
+
+void* my_thread_fun(void *args)
+{
+	thread_args_t* thread_args =  (thread_args_t*) args;
+	
+	bus_id_pos_t* bus_id_pos_holder = thread_args->bus_id_pos_holder;
+	int num_bus_ids = thread_args->num_bus_ids;
+	uint64_t timestamp = thread_args->timestamp;
+	int max_bus_id =  thread_args->max_bus_id_pos->bus_id;
+	int max_pos = thread_args->max_bus_id_pos->pos;
+	int factor = thread_args->factor;
+	size_t i =0;
+	long int mul = 0;
+    //if(num_bus_ids > 8) {	mul = 20000000000;};
+	printf("mul %lu max_bus_id %u factor:%u\n", mul, max_bus_id , factor );
+	
+    do {
+		timestamp = (NTHREADS * mul+ factor)*max_bus_id;
+		{   
+			for (i =0; i <  num_bus_ids; i++)
+			{
+				if (((timestamp + bus_id_pos_holder[i].pos - max_pos) % bus_id_pos_holder[i].bus_id) != 0) {
+					break;
+				}
+			}
+       }
+	   	if (num_bus_ids == i) {
+				break;
+		}
+		
+		if ( !(mul % 100000000) /*|| mul <= NTHREADS*8*/) {
+			//printf("Crazy large mul %lu timestamp %lu factor:%u\n", mul, timestamp , factor );
+		}
+		mul++;
+	}while(mul < 10000000000000000);
+
+	if (mul < 100000000000000) {printf("THIS IS it %lu  mul %lu  factor %u\n ",timestamp-max_pos, mul, factor); /*exit(1);*/}
+        thread_args->timestamp = timestamp-max_pos;
+	return NULL;
+}
+
 uint64_t positon_waiting_timestamp_lcm(char* data, int num_elements)
 {
     bus_id_pos_t* bus_id_pos_holder = calloc(num_elements, sizeof(*bus_id_pos_holder));
@@ -125,30 +178,71 @@ uint64_t positon_waiting_timestamp_lcm(char* data, int num_elements)
 		if (strcmp(str, "x") != 0) {
 			 bus_id_pos_holder[num_bus_ids].bus_id = atoi(str);
 	         bus_id_pos_holder[num_bus_ids].pos = i;
+
+			 if (max_bus_id_pos.bus_id < atoi(str)) {
+				 max_bus_id_pos.bus_id = atoi(str);
+				 max_bus_id_pos.pos = i;
+			 }
 			 num_bus_ids++;
 		}
 		data = data + COL;
 	}
-	uint64_t timestamp = (uint64_t)first_bus_id;
+	
+			for (int i = 0; i <  num_bus_ids; i++)
+			{
+				printf("bus id %u pos %u\n", bus_id_pos_holder[i].bus_id, bus_id_pos_holder[i].pos);
+			}
+	uint64_t timestamp = 0;
 	long int mul = 1; 
 	if (num_elements == 92) {
 		timestamp = 10000;
 		timestamp *= 10000;
-		timestamp *= 10000;
-		timestamp *= first_bus_id*2;
-		printf("Crazy large mul %lu timestamp %lu first_bus_id %u  %lu num_bus_ids %u \n", mul, timestamp, first_bus_id, (uint64_t)(first_bus_id*10000*10000*10000), num_bus_ids);
+		timestamp *= 1000;
+		timestamp *= max_bus_id_pos.bus_id;
+		printf("Crazy large mul %lu timestamp %lu max_bus_id_pos.bus_id %u  %lu num_bus_ids %u \n", mul, timestamp, max_bus_id_pos.bus_id, (uint64_t)(max_bus_id_pos.bus_id*10000*10000*10000), num_bus_ids);
 	}
+#if 1	
+	if (num_elements > 0) {
+		pthread_t threads[NTHREADS];
+		thread_args_t thread_args[NTHREADS];
+		int rc, i;
+
+	  /* spawn the threads */
+	  for (i=0; i<NTHREADS; ++i)
+		{
+		  thread_args[i].num_bus_ids  = num_bus_ids;
+		  thread_args[i].bus_id_pos_holder = bus_id_pos_holder;
+		   thread_args[i].max_bus_id_pos = &max_bus_id_pos;
+		  thread_args[i].timestamp  = timestamp;
+		  thread_args[i].factor  = i;
+		  printf("spawning thread %d\n", i);
+		  rc = pthread_create(&threads[i], NULL, my_thread_fun, (void *) &thread_args[i]);
+		}
+
+	  /* wait for threads to finish */
+	  for (i=0; i<NTHREADS; ++i) {
+		rc = pthread_join(threads[i], NULL);
+	  }
+          timestamp = thread_args[0].timestamp;
+	  for (i=0; i<NTHREADS; ++i){
+             if (timestamp > thread_args[i].timestamp) { timestamp = thread_args[i].timestamp;} 
+          	//printf("timestamp %lu :%u \n", thread_args[i].timestamp, i);
+          }
+
+         printf("FINAL VALUE timestamp %lu \n", timestamp);
+	}
+#else
 	size_t i =0;
     do {
-		timestamp += first_bus_id;
+		timestamp += max_bus_id_pos.bus_id;// - max_bus_id_pos.pos;
 
 		{   
-			for (i =1; i <  num_bus_ids; i++)
+			for (i = 0; i <  num_bus_ids; i++)
 			{
 				//int value  = bus_id_pos_holder[i].bus_id;
 				//int waiting = bus_id_pos_holder[i].pos;
-				if ((bus_id_pos_holder[i].bus_id != 0) && 
-					 (((timestamp + bus_id_pos_holder[i].pos) % bus_id_pos_holder[i].bus_id) != 0) ) {
+				if (/*(max_bus_id_pos.bus_id != bus_id_pos_holder[i].bus_id) && (bus_id_pos_holder[i].bus_id != 0) && */
+					 (((timestamp + bus_id_pos_holder[i].pos  - max_bus_id_pos.pos) % bus_id_pos_holder[i].bus_id) != 0) ) {
 					break;
 				}
 			}
@@ -169,6 +263,8 @@ uint64_t positon_waiting_timestamp_lcm(char* data, int num_elements)
 		
 	//printf ("least_wait %u bus_id %u \n", least_wait, bus_id);
 	printf ("mul %lu \n", mul);
+
+#endif
 	return timestamp;
 }
 
@@ -177,10 +273,10 @@ int main(void)
 {
 	printf("Product %u\n", product_early_waiting_timestamp ((char*)test, 8, timestap_test));
 	printf("Product %u\n", product_early_waiting_timestamp ((char*)sample, 92, timestamp_samplet));
-	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)test, 8));
 	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)test_1, 4));
 	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)test_2, 5));	
 	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)test_3, 5));
 	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)test_4, 4));		
+	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)test, 8));
 	printf("timestamp %lu\n", positon_waiting_timestamp_lcm ((char*)sample, 92));
 }
