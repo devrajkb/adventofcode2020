@@ -644,200 +644,71 @@ char sample[594][150] ={"plaid fuchsia bags contain 5 light violet bags, 1 light
 "muted coral bags contain 4 clear red bags, 3 vibrant maroon bags.",
 "bright lavender bags contain 4 striped blue bags."};
 
+
+char test_2[7][150] = {"shiny gold bags contain 2 dark red bags.",
+"dark red bags contain 2 dark orange bags.",
+"dark orange bags contain 2 dark yellow bags.",
+"dark yellow bags contain 2 dark green bags.",
+"dark green bags contain 2 dark blue bags.",
+"dark blue bags contain 2 dark violet bags.",
+"dark violet bags contain no other bags.",};
+
+
 typedef struct node_s {
+struct node_s* next;
 char key[30];
 int value;
 } node_t;
 
 typedef struct parent_node_s {
 struct parent_node_s *next;
-struct node_s* left;
-struct node_s* right;
+struct node_s* child_node;
 char key[30];
 int value;
 int already_evaluated;
+int total_bags;
 } parent_node_t;
 
 parent_node_t* g_parent_node = NULL;
 
-int get_first_bag_in_line(char* data, char* bag_name)
-{
-	int offset = 0;
-	int  first_whiite_space = 0;
-	while(*data != '.') {
-				if(*data != ' ') {
-					*bag_name = *data;
-				}
-				else if (!first_whiite_space){
-					*bag_name = *data;
-					first_whiite_space = 1;
-				}
-				else {
-					break;
-				}
-	            data++;
-				bag_name++;
-				offset++;
-	}
-	//puts(data);
-	//puts(bag_name);
-	return offset;
-}
 
-
-int remove_space_bag_comma_space_from_line(char* data)
-{
-	int  first_whiite_space = 0;
-    int offset = 0;
-	data++;
-	offset++;
-	while(*data != '.') {
-				if(*data != ' ') {
-				}
-				else {
-					break;
-				}
-	            data++;
-				offset++;
-	}
-	data++;
-	offset++;
-	//puts(data);
-	return offset;
-}
-
-
-int remove_space_contain_bags_space_from_line(char* data)
-{
-	int  first_whiite_space = 0;
-    int offset = 0;
-	data++;
-	offset++;
-	while(*data != '.') {
-				if(*data != ' ') {
-				}
-				else if (!first_whiite_space){
-					first_whiite_space = 1;
-				}
-				else {
-					break;
-				}
-	            data++;
-				offset++;
-	}
-	data++;
-	offset++;
-	//puts(data);
-	return offset;
-}
-
-int get_childs_bags_values(char* data, int* value_1, char* child_1, int* value_2, char* child_2)
-{
-	    int offset = 0;
-		char ch = *data;
-		if(isdigit(ch)) {
-			*value_1 = atoi(data);
-			data++;
-			offset++;
-			data++;
-			offset++;
-			int offset_sub = get_first_bag_in_line(data, child_1);
-			data = data + offset_sub;
-			offset += offset_sub;
-			
-            offset_sub = remove_space_bag_comma_space_from_line(data);
-			data = data + offset_sub;
-			offset += offset_sub;
-
-			ch = *data;
-			if(isdigit(ch)) {
-				*value_2 = atoi(data);
-				data++;
-				offset++;
-				data++;
-				offset++;
-				int offset_sub= get_first_bag_in_line(data, child_2);
-			    data = data + offset_sub;
-			    offset += offset_sub;
-			}
-		}
-		//printf("data: %s: %u %s %u %s\n", data, *value_1, child_1, *value_2, child_2);
-		return offset;
-}
 
 void print_tree()
 {
 	parent_node_t* parent_node = g_parent_node;
 	printf("\n\n");
 	while( parent_node!= NULL) {
-		if ((parent_node->left->key != NULL) && (parent_node->right->key != NULL)) {
-			printf("Node %s , left %s right %s\n",  parent_node->key,  parent_node->left->key, parent_node->right->key);
-		}
-		else if ((parent_node->left->key != NULL) ) {
-			printf("Node %s , left %s right NULL\n",  parent_node->key,  parent_node->left->key);
-		}
-		else {
-			printf("Node %s , left NULL right NULL\n",  parent_node->key);
-		}
+		printf("\nNode %s contains total_bags %u  ",  parent_node->key, parent_node->total_bags);
+		node_t* child_node = parent_node->child_node;
+			while(child_node != NULL) {
+				printf(" %u  %s bag(s) ",  child_node->value,  child_node->key);
+				child_node = child_node->next;
+			}
 	parent_node = parent_node->next;
 	}
 }
 
-void add_to_tree(char* parent_bag,  int value_1, char* child_1, int value_2, char* child_2) 
-{
-	parent_node_t* parent_node = malloc(sizeof(parent_node_t));
-	memcpy(parent_node->key,  parent_bag,  strlen(parent_bag));
-	parent_node->next = NULL;
-	parent_node->left = NULL;
-	parent_node->right = NULL;
-	parent_node->already_evaluated = 0;
-	if (child_1) {
-		parent_node->left = malloc(sizeof(node_t));
-		memcpy(parent_node->left->key,  child_1, strlen(child_1));
-		parent_node->left->value = value_1;
-	}
-	if (child_2) {
-		parent_node->right = malloc(sizeof(node_t));
-		memcpy(parent_node->right->key,  child_2, strlen(child_2));
-		parent_node->right->value = value_2;
-	}
-	
-	if( g_parent_node == NULL) {
-		g_parent_node = parent_node;
-	}
-	else {
-		parent_node->next = g_parent_node;
-		g_parent_node = parent_node; 
-	}
-}
 
 void recursive_find(char*  bag_key,  int* at_least_one_parent )
 {
 	int num_parents = 0;
 	parent_node_t* parent_node = g_parent_node;
-	while( parent_node!= NULL) {
+	while( parent_node != NULL) {
 		if(!parent_node->already_evaluated) {
-			if (parent_node->left->key !=  NULL)  {
-				if (strcmp(parent_node->left->key , bag_key) == 0) {
-					(*at_least_one_parent)++;
-					recursive_find(parent_node->key,  at_least_one_parent);
-					parent_node->already_evaluated = 1;
+			node_t* child_node = parent_node->child_node; 
+			while(child_node != NULL) {
+				if (child_node->key !=  NULL)  {
+					if (strcmp(child_node->key , bag_key) == 0) {
+						(*at_least_one_parent)++;
+						recursive_find(parent_node->key,  at_least_one_parent);
+						parent_node->already_evaluated = 1;
+					}
 				}
-			}
-			if (parent_node->right->key !=  NULL ) {
-				if (strcmp(parent_node->right->key , bag_key) == 0) {
-					(*at_least_one_parent)++;
-					recursive_find(parent_node->key,  at_least_one_parent);
-					parent_node->already_evaluated = 1;
-				}
-			}
+				child_node = child_node->next;
+			};
 		}
 		parent_node = parent_node->next;
 	}
-		if (( parent_node == NULL) || (strcmp(parent_node->key, bag_key) == 0)) {
-			return;
-		}
-
 }
 
 int find_atleast_one_parent(char*  bag_key)
@@ -848,44 +719,155 @@ int find_atleast_one_parent(char*  bag_key)
 }
 
 
+parent_node_t* creat_parent_node(char* parent_bag) 
+{
+	parent_node_t* parent_node = malloc(sizeof(parent_node_t));
+	memcpy(parent_node->key,  parent_bag,  strlen(parent_bag));
+	parent_node->next = NULL;
+	parent_node->child_node = NULL;
+	parent_node->already_evaluated = 0;
+	parent_node->total_bags = 0;
+	return parent_node;
+}
+
+node_t* get_node(char*data, int *offset)
+{
+	char child_bag[50] = "";
+	int value = atoi(data);
+	char* temp = strstr(data, " ");
+	int off = temp - data;
+	data = data + off + 1;
+	*offset = off + 1;
+	temp = strstr(data, "bag");
+	off = temp - data;
+    strncpy(child_bag, data, off-1);
+	node_t* node = malloc(sizeof(node_t));
+	memcpy(node->key,  child_bag, strlen(child_bag));
+	node->value = value;
+	node->next = NULL;
+	temp = strstr(data, ",");
+	if(temp == NULL) {
+		temp = strstr(data, ".");
+		*offset += temp - data + 1;
+	}
+	else {
+		*offset += temp - data + 1 + 1;
+	}
+
+	return node;
+}
+
+void add_to_parent(parent_node_t* parent_node, node_t*  child_node)
+{
+	parent_node->total_bags += child_node->value;
+	if (parent_node->child_node == NULL) {
+		parent_node->child_node = child_node;
+	}
+	else {
+		child_node->next = parent_node->child_node;
+		parent_node->child_node = child_node;
+	}
+	
+}
+
 void create_trees(char* data, int lines)
 {
 	
 	for(size_t i = 0; i <  lines; i++) {
+		char* data_start = data;
 		char parent_bag[50] = "";
-		char child_1[50] = "";
-		char child_2[50] = "";	
-        int 	  value_1      = 0;
-		int      value_2      = 0;
-		int      offset          = 0;
-		offset = get_first_bag_in_line(data, parent_bag);
-		offset += remove_space_contain_bags_space_from_line(data + offset);
-		offset += get_childs_bags_values(data + offset, &value_1, child_1, &value_2, child_2);
-		//printf("data: %s: %u %s %u %s\n", data, value_1, child_1, value_2, child_2);
+		int      num_bags  = 0;
+	//"bright silver bags contain 3 mirrored violet bags, 5 striped gold bags, 1 striped white bag, 4 clear chartreuse bags.",		
+		char* temp = strstr(data,  "bags contain");
+		int offset = temp - data;
+		strncpy(parent_bag, data, offset-1);
+		parent_node_t* parent_node = creat_parent_node(parent_bag);
 		
-		if(strlen(parent_bag)) {
-		
-			add_to_tree(parent_bag, value_1, child_1, value_2, child_2);
+		data = data + offset + strlen("bags contain") + 1;
+		if(isdigit(*data)) { 
+			while(*data != '\0') {
+				offset = 0;
+				node_t* child_node = get_node(data,  &offset);
+				data = data + offset;
+				add_to_parent(parent_node, child_node);
+			};
 		}
-		data = data+ 150;
+		
+	if( g_parent_node == NULL) {
+		g_parent_node = parent_node;
+	}
+	else {
+		parent_node->next = g_parent_node;
+		g_parent_node = parent_node; 
+	}
+		
+		data = data_start+ 150;
 	}
 }
 
 
 int find_bag(char* data, int lines,  char*  bag_key) 
 {
+g_parent_node = NULL; // memory leak
 	create_trees(data, lines);
 	//print_tree();
 	return find_atleast_one_parent(bag_key);
 
 }
 
+int g_total_bags = 0;
+int recursive_find_childs(char*  bag_key,  int num_child_value, int recursive )
+{
+	parent_node_t* parent_node = g_parent_node;
+	while( parent_node != NULL) {
+		if (!recursive) {num_child_value = 1; }
+			if (strcmp(parent_node->key , bag_key) == 0)  {
+				node_t* child_node = parent_node->child_node;
+				if (child_node == NULL) { 
+				    //printf("\n RET %u for key %s", num_child_value, bag_key);
+					return num_child_value;
+				}
+                int total_bags = 0;				
+				while(child_node != NULL) {
+					total_bags +=  child_node->value;
+
+					//printf("\n BEF child_node->value %u key %s *num_child_value %u g_total_bags %u",  child_node->value, child_node->key, num_child_value, g_total_bags);
+					int ret = recursive_find_childs(child_node->key, (num_child_value)*child_node->value, 1);
+					 g_total_bags+= child_node->value * (num_child_value);
+
+					//printf("\n AFT child_node->value %u key %s *num_child_value %u g_total_bags %u ret %u ",  child_node->value, child_node->key, num_child_value, g_total_bags, ret);
+					child_node = child_node->next;
+				};
+
+		}
+		parent_node = parent_node->next;
+	}
+}
+
+int find_num_bag(char* bag_key)
+{
+	int num_child_value = 1;
+	recursive_find_childs(bag_key, num_child_value, 0);
+	return num_child_value - 1;
+}
+int num_bag(char* data, int lines,  char*  bag_key) 
+{
+    g_parent_node = NULL; // memory leak
+	g_total_bags = 0;
+	create_trees(data, lines);
+	//print_tree();
+	find_num_bag(bag_key);
+    return g_total_bags;
+}
 
 int main(void) {
 
-//printf("Evently contain at atleast one shiny gold %u\n", find_bag((char*)test, 9, "shiny gold"));
+printf("\nEvently contain at atleast one shiny gold %u\n", find_bag((char*)test, 9, "shiny gold"));
 printf("Evently contain at atleast one shiny gold %u\n", find_bag((char*)sample, 594, "shiny gold"));
 
+printf("\nshiny gold  contains %u bags\n", num_bag((char*)test_2, 7, "shiny gold"));
+printf("\nshiny gold  contains %u bags\n", num_bag((char*)test, 9, "shiny gold"));
+printf("\nshiny gold  contains %u bags\n", num_bag((char*)sample, 594, "shiny gold"));
 
 return 0;
 }
