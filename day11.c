@@ -210,144 +210,436 @@ char sample[SAMPLE_R][SAMPLE_C] = \
 
 int adjacent_seat_empty(char *data, int index_row, int index_col, int num_rows, int num_cols, int part2)
 {
-	if (!part2) {
-		if(index_row == 0) {
-			if(index_col == 0) {
-				 if((data[1] != '#')  && (data[num_cols] != '#') &&  (data[num_cols + 1] != '#')) {
-					return 1;
-				}
-			}
-			else if (index_col == num_cols - 1) {
-				if((data[index_col - 1] != '#')  && (data[num_cols + index_col -1] != '#') &&  (data[num_cols + index_col] != '#')) {
-					return 1;
-				}
-			}
-			else if((data[index_col - 1] != '#')  &&  (data[index_col +1] != '#') && 
-						(data[num_cols+ index_col - 1] != '#')  && (data[num_cols + index_col] != '#') &&  (data[num_cols+ index_col +1] != '#')) {
-					return 1;
-			}
-		}
-		else if(index_row == num_rows - 1) {
-			if(index_col == 0) {
-				 if( (data[index_row*num_cols + 1] != '#')  && (data[index_row*num_cols - num_cols] != '#') &&  (data[index_row*num_cols - num_cols + 1] != '#')) {
-					return 1;
-				}
-			}
-			else if (index_col == num_cols - 1) {
-				if((data[index_row*num_cols +index_col -1] != '#')  && (data[index_row*num_cols  - num_cols -1] != '#') &&  (data[index_row*num_cols  - num_cols] != '#')) {
-					return 1;
-				}
-			}
-			else if((data[index_row*num_cols + index_col - 1] != '#') && (data[index_row*num_cols+ index_col +1] != '#') && 
-						(data[(index_row - 1)*num_cols+ index_col - 1] != '#')  && (data[(index_row - 1)*num_cols + index_col] != '#') &&  (data[(index_row - 1)*num_cols+ index_col +1] != '#')) {
-					return 1;
-			}
-		}
-		else if (index_col == 0) {
-				 if((data[index_row*num_cols + index_col  + 1] != '#') && 
-					(data[(index_row - 1)*num_cols+ index_col ] != '#') && (data[(index_row - 1)*num_cols+ index_col  + 1] != '#') && 
-					(data[(index_row + 1)*num_cols+ index_col ] != '#') && (data[(index_row + 1)*num_cols+ index_col + 1] != '#')) {
-					 return 1;
-				 } 
-		}
-		else if (index_col == num_cols - 1) {
-				 if((data[index_row*num_cols + index_col  - 1] != '#')  && 
-					 (data[(index_row - 1)*num_cols+ index_col  - 1] != '#') && (data[(index_row - 1)*num_cols+ index_col ] != '#') && 
-					 (data[(index_row + 1)*num_cols+ index_col  - 1] != '#') && (data[(index_row + 1)*num_cols+ index_col] != '#')) {
-						 return 1;
-				} 
-		}
-		else if((data[index_row*num_cols + index_col - 1] != '#')  &&  (data[index_row*num_cols + index_col +1] != '#') && 
-					(data[(index_row - 1)*num_cols + index_col - 1] != '#')  && (data[(index_row - 1)*num_cols + index_col ] != '#') &&  (data[(index_row - 1)*num_cols + index_col +1] != '#') && 
-					(data[(index_row + 1)*num_cols + index_col - 1] != '#')  && (data[(index_row + 1)*num_cols + index_col ] != '#') &&  (data[(index_row + 1)*num_cols + index_col +1] != '#') ) {
-					return 1;
-		}
-
-	}
-	else {
+	
+    if(part2) {
 		
-	}
-    return 0;
-}
-
-int adjacent_seat_more_nonempty(char *data, int index_row, int index_col, int num_rows, int num_cols, int occ_th)
-{
-	int number_seats_occ = 0;
-	if(index_row == 0) {
-		if(index_col == 0) {
-			 //if((data[0] == '#') ) {number_seats_occ++;}  
-			 if((data[1] == '#'))  {number_seats_occ++;} 
-			 if((data[num_cols] == '#')) {number_seats_occ++;}  
-			 if((data[num_cols + 1] == '#'))  {number_seats_occ++;} 
+		if((index_row>0) && (index_row < num_rows) && (index_col > 0) &&(index_col < num_cols)) {
+			if((data[index_row*num_cols + index_col - 1] == '.')  &&  (data[index_row*num_cols + index_col +1] == '.') && 
+				(data[(index_row - 1)*num_cols + index_col - 1] == '.')  && (data[(index_row - 1)*num_cols + index_col ] == '.') &&  (data[(index_row - 1)*num_cols + index_col +1] == '.') && 
+				(data[(index_row + 1)*num_cols + index_col - 1] == '.')  && (data[(index_row + 1)*num_cols + index_col ] == '.') &&  (data[(index_row + 1)*num_cols + index_col +1] == '.') ) {
+				return 1;
+			}
 		}
-		else if (index_col == num_cols - 1) {
-			 if((data[index_col - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_col] == '#'))  {number_seats_occ++;} 
-			 if((data[num_cols + index_col -1] == '#')) {number_seats_occ++;}  
-			 if((data[num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+	
+		
+		int found_occ = 0;
+		int looked_dir = 0; 
+		int looked = 0;
+		// -ve x-axis
+		for(int i= index_col - 1; i >=0; i--) {
+			looked=1;
+			if (data[index_row*num_cols + i] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[index_row*num_cols + i] =='L' ) {
+				break;
+			}
+		}
+		
+		if (looked) {looked_dir++;}
+		looked = 0;
+		//+ve x-axis
+		for(int i= index_col +1; i < num_cols; i++) {
+			looked=1;
+			if (data[index_row*num_cols + i] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[index_row*num_cols + i] =='L' ) {
+				break;
+			}
+		}
+		
+		if (looked) {looked_dir++;}
+		looked = 0;
+		// +ve y-axis`
+		for(int i= index_row - 1; i >=0; i--) {
+			looked=1;
+			if (data[i*num_cols +index_col] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[i*num_cols +index_col]=='L' ) {
+				break;
+			}
+		}
+		
+		if (looked) {looked_dir++;}
+		looked = 0;
+		// -ve y-axis
+		for(int i= index_row +1; i < num_rows; i++) {
+			looked=1;
+			if (data[i*num_cols +index_col] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[i*num_cols +index_col]=='L' ) {
+				break;
+			}
+		}
+		if (looked) {looked_dir++;}
+
+
+///     +ve y-axis, -ve x-axis
+        looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row - i) >= 0) && (index_col - i) >=0) {
+					looked=1;
+					if (data[(index_row -i)*num_cols + index_col - i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row -i)*num_cols + index_col - i] =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+
+		
+		// +ve y-axis +ve x-axis
+		 looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row - i) >= 0) && (index_col + i) < num_cols) {
+					looked=1;
+					if (data[(index_row -i)*num_cols + index_col +i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row -i)*num_cols + index_col +i]  =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+
+		
+		// -ve y-axis -ve x-axis
+		 looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row + i) < num_rows) && (index_col - i) >=0) {
+					looked=1;
+					if (data[(index_row +i)*num_cols + index_col -i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row +i)*num_cols + index_col -i]   =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+
+		
+		// -ve y-axis +ve x-axis
+		 looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row + i) < num_rows) && (index_col + i) < num_cols) {
+					looked=1;
+					if (data[(index_row +i)*num_cols + index_col +i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row +i)*num_cols + index_col +i]  =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+		
+		if (found_occ > 0) {
+			return 0;
 		}
 		else {
-			 if((data[index_col - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_col] == '#'))  {number_seats_occ++;} 
-			 if((data[index_col + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[num_cols + index_col -1] == '#')) {number_seats_occ++;}  
-			 if((data[num_cols + index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+			return 1;
+		}
+	}
+	
+
+	if(index_row == 0) {
+		if(index_col == 0) {
+			 if((data[1] != '#')  && (data[num_cols] != '#') &&  (data[num_cols + 1] != '#')) {
+				return 1;
+			}
+		}
+		else if (index_col == num_cols - 1) {
+			if((data[index_col - 1] != '#')  && (data[num_cols + index_col -1] != '#') &&  (data[num_cols + index_col] != '#')) {
+				return 1;
+			}
+		}
+		else if((data[index_col - 1] != '#')  &&  (data[index_col +1] != '#') && 
+					(data[num_cols+ index_col - 1] != '#')  && (data[num_cols + index_col] != '#') &&  (data[num_cols+ index_col +1] != '#')) {
+				return 1;
 		}
 	}
 	else if(index_row == num_rows - 1) {
 		if(index_col == 0) {
-			 //if((data[index_row*num_cols + 0] == '#') ) {number_seats_occ++;}  
-			 if((data[index_row*num_cols + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[index_row*num_cols - num_cols] == '#')) {number_seats_occ++;}  
-			 if((data[index_row*num_cols - num_cols + 1] == '#'))  {number_seats_occ++;} 
+			 if( (data[index_row*num_cols + 1] != '#')  && (data[index_row*num_cols - num_cols] != '#') &&  (data[index_row*num_cols - num_cols + 1] != '#')) {
+				return 1;
+			}
 		}
 		else if (index_col == num_cols - 1) {
-			 if((data[index_row*num_cols +index_col  - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_row*num_cols +index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[index_row*num_cols  - num_cols -1] == '#')) {number_seats_occ++;}  
-			 if((data[index_row*num_cols  - num_cols ] == '#'))  {number_seats_occ++;} 
+			if((data[index_row*num_cols +index_col -1] != '#')  && (data[index_row*num_cols  - num_cols -1] != '#') &&  (data[index_row*num_cols  - num_cols] != '#')) {
+				return 1;
+			}
 		}
-		else {
-			 if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row - 1)*num_cols+ index_col -1] == '#')) {number_seats_occ++;}  
-			 if((data[(index_row - 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row - 1)*num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+		else if((data[index_row*num_cols + index_col - 1] != '#') && (data[index_row*num_cols+ index_col +1] != '#') && 
+					(data[(index_row - 1)*num_cols+ index_col - 1] != '#')  && (data[(index_row - 1)*num_cols + index_col] != '#') &&  (data[(index_row - 1)*num_cols+ index_col +1] != '#')) {
+				return 1;
 		}
 	}
 	else if (index_col == 0) {
-			 //if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row - 1)*num_cols+ index_col ] == '#')) {number_seats_occ++;}  
-			 if((data[(index_row - 1)*num_cols+ index_col  + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row + 1)*num_cols+ index_col + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row + 1)*num_cols+ index_col] == '#'))  {number_seats_occ++;} 
+			 if((data[index_row*num_cols + index_col  + 1] != '#') && 
+				(data[(index_row - 1)*num_cols+ index_col ] != '#') && (data[(index_row - 1)*num_cols+ index_col  + 1] != '#') && 
+				(data[(index_row + 1)*num_cols+ index_col ] != '#') && (data[(index_row + 1)*num_cols+ index_col + 1] != '#')) {
+				 return 1;
+			 } 
 	}
 	else if (index_col == num_cols - 1) {
-			 if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
-			 //if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row - 1)*num_cols+ index_col  - 1] == '#')) {number_seats_occ++;}  
-			 if((data[(index_row - 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row + 1)*num_cols+ index_col  - 1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row + 1)*num_cols+ index_col] == '#'))  {number_seats_occ++;} 
+			 if((data[index_row*num_cols + index_col  - 1] != '#')  && 
+				 (data[(index_row - 1)*num_cols+ index_col  - 1] != '#') && (data[(index_row - 1)*num_cols+ index_col ] != '#') && 
+				 (data[(index_row + 1)*num_cols+ index_col  - 1] != '#') && (data[(index_row + 1)*num_cols+ index_col] != '#')) {
+					 return 1;
+			} 
+	}
+	else if((data[index_row*num_cols + index_col - 1] != '#')  &&  (data[index_row*num_cols + index_col +1] != '#') && 
+				(data[(index_row - 1)*num_cols + index_col - 1] != '#')  && (data[(index_row - 1)*num_cols + index_col ] != '#') &&  (data[(index_row - 1)*num_cols + index_col +1] != '#') && 
+				(data[(index_row + 1)*num_cols + index_col - 1] != '#')  && (data[(index_row + 1)*num_cols + index_col ] != '#') &&  (data[(index_row + 1)*num_cols + index_col +1] != '#') ) {
+				return 1;
+		}
+	 return 0;
+
+}
+
+int adjacent_seat_more_nonempty(char *data, int index_row, int index_col, int num_rows, int num_cols, int occ_th)
+{
+	if (occ_th ==4) {
+		int number_seats_occ = 0;
+		if(index_row == 0) {
+			if(index_col == 0) {
+				 //if((data[0] == '#') ) {number_seats_occ++;}  
+				 if((data[1] == '#'))  {number_seats_occ++;} 
+				 if((data[num_cols] == '#')) {number_seats_occ++;}  
+				 if((data[num_cols + 1] == '#'))  {number_seats_occ++;} 
+			}
+			else if (index_col == num_cols - 1) {
+				 if((data[index_col - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_col] == '#'))  {number_seats_occ++;} 
+				 if((data[num_cols + index_col -1] == '#')) {number_seats_occ++;}  
+				 if((data[num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+			}
+			else {
+				 if((data[index_col - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_col] == '#'))  {number_seats_occ++;} 
+				 if((data[index_col + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[num_cols + index_col -1] == '#')) {number_seats_occ++;}  
+				 if((data[num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+			}
+		}
+		else if(index_row == num_rows - 1) {
+			if(index_col == 0) {
+				 //if((data[index_row*num_cols + 0] == '#') ) {number_seats_occ++;}  
+				 if((data[index_row*num_cols + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[index_row*num_cols - num_cols] == '#')) {number_seats_occ++;}  
+				 if((data[index_row*num_cols - num_cols + 1] == '#'))  {number_seats_occ++;} 
+			}
+			else if (index_col == num_cols - 1) {
+				 if((data[index_row*num_cols +index_col  - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_row*num_cols +index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[index_row*num_cols  - num_cols -1] == '#')) {number_seats_occ++;}  
+				 if((data[index_row*num_cols  - num_cols ] == '#'))  {number_seats_occ++;} 
+			}
+			else {
+				 if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row - 1)*num_cols+ index_col -1] == '#')) {number_seats_occ++;}  
+				 if((data[(index_row - 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row - 1)*num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+			}
+		}
+		else if (index_col == 0) {
+				 //if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row - 1)*num_cols+ index_col ] == '#')) {number_seats_occ++;}  
+				 if((data[(index_row - 1)*num_cols+ index_col  + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row + 1)*num_cols+ index_col + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row + 1)*num_cols+ index_col] == '#'))  {number_seats_occ++;} 
+		}
+		else if (index_col == num_cols - 1) {
+				 if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+				 //if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row - 1)*num_cols+ index_col  - 1] == '#')) {number_seats_occ++;}  
+				 if((data[(index_row - 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row + 1)*num_cols+ index_col  - 1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row + 1)*num_cols+ index_col] == '#'))  {number_seats_occ++;} 
+		}
+		else {
+				 if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
+				 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
+				 
+				 if((data[(index_row - 1)*num_cols+ index_col -1] == '#')) {number_seats_occ++;}  
+				 if((data[(index_row - 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row - 1)*num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row + 1)*num_cols+ index_col -1] == '#')) {number_seats_occ++;}  
+				 if((data[(index_row + 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
+				 if((data[(index_row + 1)*num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+		}
+		return (number_seats_occ >= occ_th) ? 1:0;
 	}
 	else {
-			 if((data[index_row*num_cols + index_col  - 1] == '#') ) {number_seats_occ++;}  
-			 //if((data[index_row*num_cols + index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[index_row*num_cols + index_col  + 1] == '#'))  {number_seats_occ++;} 
-			 
-			 if((data[(index_row - 1)*num_cols+ index_col -1] == '#')) {number_seats_occ++;}  
-			 if((data[(index_row - 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row - 1)*num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row + 1)*num_cols+ index_col -1] == '#')) {number_seats_occ++;}  
-			 if((data[(index_row + 1)*num_cols+ index_col ] == '#'))  {number_seats_occ++;} 
-			 if((data[(index_row + 1)*num_cols+ index_col +1] == '#'))  {number_seats_occ++;} 
+		#if 0
+		if((index_row>0) && (index_row < num_rows) && (index_col > 0) &&(index_col < num_cols)) {
+			if((data[index_row*num_cols + index_col - 1] == '.')  &&  (data[index_row*num_cols + index_col +1] == '.') && 
+				(data[(index_row - 1)*num_cols + index_col - 1] == '.')  && (data[(index_row - 1)*num_cols + index_col ] == '.') &&  (data[(index_row - 1)*num_cols + index_col +1] == '.') && 
+				(data[(index_row + 1)*num_cols + index_col - 1] == '.')  && (data[(index_row + 1)*num_cols + index_col ] == '.') &&  (data[(index_row + 1)*num_cols + index_col +1] == '.') ) {
+				return 1;
+			}
+		}
+	    #endif 
+		
+		int found_occ = 0;
+		int looked_dir = 0; 
+		int looked = 0;
+		// -ve x-axis
+		for(int i= index_col - 1; i >=0; i--) {
+			looked=1;
+			if (data[index_row*num_cols + i] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[index_row*num_cols + i] =='L' ) {
+				break;
+			}
+		}
+		
+		if (looked) {looked_dir++;}
+		looked = 0;
+		//+ve x-axis
+		for(int i= index_col +1; i < num_cols; i++) {
+			looked=1;
+			if (data[index_row*num_cols + i] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[index_row*num_cols + i] =='L' ) {
+				break;
+			}
+		}
+		
+		if (looked) {looked_dir++;}
+		looked = 0;
+		// +ve y-axis`
+		for(int i= index_row - 1; i >=0; i--) {
+			looked=1;
+			if (data[i*num_cols +index_col] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[i*num_cols +index_col]=='L' ) {
+				break;
+			}
+		}
+		
+		if (looked) {looked_dir++;}
+		looked = 0;
+		// -ve y-axis
+		for(int i= index_row +1; i < num_rows; i++) {
+			looked=1;
+			if (data[i*num_cols +index_col] =='#' ) {
+				found_occ += 1;
+				break;
+			}
+			else if (data[i*num_cols +index_col]=='L' ) {
+				break;
+			}
+		}
+		if (looked) {looked_dir++;}
+
+
+///     +ve y-axis, -ve x-axis
+        looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row - i) >= 0) && (index_col - i) >=0) {
+					if (data[(index_row -i)*num_cols + index_col - i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row -i)*num_cols + index_col - i] =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+
+		
+		// +ve y-axis +ve x-axis
+		 looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row - i) >= 0) && (index_col + i) < num_cols) {
+					if (data[(index_row -i)*num_cols + index_col +i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row -i)*num_cols + index_col +i]  =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+
+		
+		// -ve y-axis -ve x-axis
+		 looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row + i) < num_rows) && (index_col - i) >=0) {
+					if (data[(index_row +i)*num_cols + index_col -i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row +i)*num_cols + index_col -i]   =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+
+		
+		// -ve y-axis +ve x-axis
+		 looked = 0;
+		for(int i = 1 ; i < num_rows ; i++) {
+			    if (((index_row + i) < num_rows) && (index_col + i) < num_cols) {
+					if (data[(index_row +i)*num_cols + index_col +i] =='#' ) {
+						found_occ += 1;
+						break;
+					}
+					else if (data[(index_row +i)*num_cols + index_col +i]  =='L' ) {
+						break;
+					}
+				}
+				else{ break;}
+		}
+		if (looked) {looked_dir++;}
+	
+		if (found_occ >= occ_th) {
+			return 1;
+		}
+		else {
+			return 0;
+		}
 	}
-	return (number_seats_occ >= occ_th) ? 1:0;
 }
 
 
@@ -438,9 +730,9 @@ int count_seats_change_rule(char *data, int num_rows, int num_cols)
 	int changes = 0;
     int i =0;
 	do {
-	//print_present_status(data, num_rows, num_cols);
+	print_present_status(data, num_rows, num_cols);
 	changes = fill_the_seats(data, num_rows, num_cols, 1);
-	//print_present_status(data, num_rows, num_cols);
+	print_present_status(data, num_rows, num_cols);
 	changes += vacate_the_seats(data, num_rows, num_cols, 5);
 	i++;
 	}while((changes !=0) && (i<2000));
@@ -457,7 +749,7 @@ int main(void)
 	printf(" Sum %u\n", count_seats((char*)test, TEST_R, TEST_C));
     printf(" Sum %u\n", count_seats((char*)sample, SAMPLE_R, SAMPLE_C));
 	
-    //printf("Sum %u\n", count_seats_change_rule((char*)test, 5));
-	//printf("Sum %u\n", count_seats_change_rule((char*)sample, 783));
+    printf(" Sum %u\n", count_seats_change_rule((char*)test, TEST_R, TEST_C));
+	printf("Sum %u\n", count_seats_change_rule((char*)sample,  SAMPLE_R, SAMPLE_C));
 	return 0;
 }
