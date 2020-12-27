@@ -50,54 +50,117 @@ Your puzzle input is 18,8,0,5,4,1,20.
 
 int test_1[3] = {0,3,6};
 int sample[7] = {18,8,0,5,4,1,20};
+typedef struct history_s {
+	struct history_s *left;
+	struct history_s *right;
+	int key;
+	int place[2];
+} history_t; 
 
-int find_return_pos(int* data,  int num_element, int value, int* place)
+history_t* g_history_head_ptr= NULL; 
+
+history_t* creat_history_node(int key, int pos)
 {
-	for (int i =  num_element - 2; i >= 0; i--) {
-		if (data[i] == value) {
-			*place =  i;
-			return 1;
-		}
-	}
-	return 0;
+	history_t* node = malloc(sizeof(history_t));
+	node->left = NULL;
+	node->right = NULL;
+	node->key = key;
+	node->place[0] = pos;
+	node->place[1] = -1;
+	//node->index_entries = 1;
 }
+
+
+void insert(history_t** root, int key, int pos) {
+#if 0	
+  if (!(*root))  {
+    (*root) = creat_history_node(key, pos);
+  }
+  else if (key == (*root)->key) {
+	  (*root)->key = key;
+	  (*root)->place[1]  = (*root)->place[0];
+	  (*root)->place[0] = pos;
+	}
+  else if (key < (*root)->key)
+    insert(&(*root)->left, key, pos);
+  else  // key > root->key
+    insert(&(*root)->right, key, pos);
+#endif
+
+  history_t **walk = root;
+  while (*walk) { 
+    int curkey = (*walk)->key;
+    if (curkey == key) {
+	  (*walk)->key = key;
+	  (*walk)->place[1]  = (*walk)->place[0];
+	  (*walk)->place[0] = pos;
+      return;
+    }
+    if (key > curkey) 
+      walk = &(*walk)->right;
+    else 
+      walk = &(*walk)->left;
+  }
+  *walk = creat_history_node(key, pos);
+}
+
+history_t*  search_rec(int key, history_t* node) {
+	if ((node == NULL) || (node->key == key)) {
+		return node;
+	}
+	else if (key < node->key) {
+		return search_rec(key, node->left);
+	}
+	else {
+		return search_rec(key, node->right);
+	}
+}
+int find_in_history(int key,  int current_place, int *new_value) 
+{
+        history_t* node = search_rec(key, g_history_head_ptr);
+
+		if ((node) && (node->place[1] != -1)) {
+			*new_value = node->place[0] - node->place[1];
+			if (*new_value == key) {
+				node->place[1] = node->place[0];
+				node->place[0] = current_place;
+			}
+  		    return 1;				 
+		}
+		else  {
+			*new_value = 0;
+			return 0;
+		}
+}
+
 int number_on_turn (int* data,  int num_element,  int turn )
 {
-	int turn_value[2020] = {0};
-	int place;
-	for (size_t i = 0; i < turn; i++) {
-		if (i < num_element) {
-			turn_value[i] = data[i];
-		}
-		else if(find_return_pos(turn_value, i,  turn_value[i-1], &place) ) {
-			turn_value[i] = i - 1 - place;
-		}
-		else {
-			turn_value[i] = 0;
-		}
-	}
-	return turn_value[2020 - 1];
-}
-int turn_value[30000000] = {0};
-int number_on_turn_30000000 (int* data,  int num_element)
-{
+	g_history_head_ptr= NULL; 
 
-	int place;
-	for (size_t i = 0; i < 30000000; i++) {
+	int last_value = 0;
+	for (size_t i = 0; i < turn; i++) {
+		int new_value = 0;
 		if (i < num_element) {
-			turn_value[i] = data[i];
-		}
-		else if(find_return_pos(turn_value, i,  turn_value[i-1], &place) ) {
-			turn_value[i] = i - 1 - place;
+			last_value = data[i];
+			insert(&g_history_head_ptr, last_value, i);
 		}
 		else {
-			turn_value[i] = 0;
+				if (find_in_history(last_value, i, &new_value)) {
+				if (last_value != new_value) {
+					last_value = new_value;
+					insert(&g_history_head_ptr, last_value, i);
+				}
+			}
+			else {
+				last_value = new_value;
+				insert(&g_history_head_ptr, last_value, i);
+			}
 		}
-		
-		if (!(i %1000000)) { printf("Sick of your logic i %ld\n", i);} 
+		if ((i %100000) == 0) {printf("\n Present turn %lu and value %u",i,  last_value);}
 	}
-	return turn_value[30000000 - 1];
+	return last_value;
 }
+
 
 
 int main(void) 
@@ -106,6 +169,6 @@ int main(void)
 	//printf("2020th turn no %u\n", number_on_turn (test_1, 3, 2020));
 	//printf("2020th turn no %u\n", number_on_turn (sample, 7, 2020));
 	//printf("30000000th turn no %u\n", number_on_turn_30000000 (test_1, 3));
-	printf("30000000th turn no %u\n", number_on_turn_30000000 (sample, 7));
+	printf("\n30000000th turn no %u\n", number_on_turn (sample, 7, 30000000));
 	return 0;
 }
